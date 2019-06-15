@@ -68,8 +68,8 @@ AddEventHandler('chatMessage', function(source, name, msg)
 					end
 				end
 			end
-		TriggerClientEvent('chatMessage', -1, roleStr .. name .. "^7: " .. msg)
 		end
+		TriggerClientEvent('chatMessage', -1, roleStr .. name .. "^7: " .. msg)
 	end
 end)
 			
