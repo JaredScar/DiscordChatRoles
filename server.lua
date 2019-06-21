@@ -21,6 +21,8 @@ roleList = {
 
 --- Code ---
 
+--- Code ---
+
 function sleep (a) 
     local sec = tonumber(os.clock() + a); 
     while (os.clock() < sec) do 
@@ -46,30 +48,48 @@ function stringsplit(inputstr, sep)
     end
     return t
 end
+
+roleTracker = {}
+
+function setContains(set, key)
+    return set[key] ~= nil
+end
+
 AddEventHandler('chatMessage', function(source, name, msg)
 	CancelEvent()
 	local args = stringsplit(msg)
-	if not string.find(args[1], "/") then
-		local src = source
-		for k, v in ipairs(GetPlayerIdentifiers(src)) do
-			if string.sub(v, 1, string.len("discord:")) == "discord:" then
-				identifierDiscord = v
-			end
-		end
-		local roleStr = roleList[1][2]
-		if identifierDiscord then
-			local roleIDs = exports.discord_perms:GetRoles(src)
-			-- Loop through roleList and set their role up:
-			for i = 1, #roleList do
-				for j = 1, #roleIDs do
-					local roleID = roleIDs[j]
-					if (tostring(roleList[i][1]) == tostring(roleID)) then
-						roleStr = roleList[i][2]
-					end
+	if not setContains(roleTracker, name) then
+		if not string.find(args[1], "/") then
+			local src = source
+			for k, v in ipairs(GetPlayerIdentifiers(src)) do
+				if string.sub(v, 1, string.len("discord:")) == "discord:" then
+					identifierDiscord = v
 				end
 			end
+			local roleStr = roleList[1][2]
+			if identifierDiscord then
+				local roleIDs = exports.discord_perms:GetRoles(src)
+				-- Loop through roleList and set their role up:
+				if not (roleIDs == false) then
+					for i = 1, #roleList do
+						for j = 1, #roleIDs do
+							local roleID = roleIDs[j]
+							if (tostring(roleList[i][1]) == tostring(roleID)) then
+								roleStr = roleList[i][2]
+							end
+						end
+					end
+				else
+					print(GetPlayerName(src) .. " has not gotten their permissions cause roleIDs == false")
+				end
+			end
+			roleTracker[GetPlayerName(src)] = roleStr
+			TriggerClientEvent('chatMessage', -1, roleStr .. name .. "^7: " .. msg)
 		end
-		TriggerClientEvent('chatMessage', -1, roleStr .. name .. "^7: " .. msg)
+	else
+		if not string.find(args[1], "/") then
+			local roleStr = roleTracker[GetPlayerName(source)]
+			TriggerClientEvent('chatMessage', -1, roleStr .. name .. "^7: " .. msg)
+		end
 	end
-end)
-			
+end)	
