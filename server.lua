@@ -9,13 +9,13 @@
 ]]--
 roleList = {
 {0, "^4Civilian | "}, -- 1
-{1, "^3Trusted Civ | "}, -- 2
-{1, "^2Donator | "}, -- 3
-{1, "^1T-Mod | "}, -- 4
-{1, "^1Mod | "}, -- 5
-{1, "^1Admin | "}, -- 6
-{1, "^6Management | "}, -- 7
-{1, "^6Owner | "}, -- 8
+{577968852852539392, "^3Trusted Civ | "}, -- 2
+{577661583497363456, "^2Donator | "}, -- 3
+{577631197987995678, "^1T-Mod | "}, -- 4
+{506211787214159872, "^1Mod | "}, -- 5
+{506212543749029900, "^1Admin | "}, -- 6
+{577966729981067305, "^6Management | "}, -- 7
+{506212786481922058, "^5Owner | "}, -- 8
 }
 
 -- For allowing colored chat
@@ -50,6 +50,17 @@ function stringsplit(inputstr, sep)
     end
     return t
 end
+function get_index (tab, val)
+	local counter = 1
+    for index, value in ipairs(tab) do
+        if value == val then
+            return counter
+        end
+		counter = counter + 1
+    end
+
+    return nil
+end
 
 roleTracker = {}
 
@@ -58,9 +69,10 @@ function setContains(set, key)
 end
 
 AddEventHandler('chatMessage', function(source, name, msg)
-	CancelEvent()
 	local args = stringsplit(msg)
-	if not string.find(args[1], "/") then
+	CancelEvent()
+	if not string.find(args[1], "/") and not has_value(inStaffChat, source) then
+		CancelEvent()
 		local src = source
 		for k, v in ipairs(GetPlayerIdentifiers(src)) do
 			if string.sub(v, 1, string.len("discord:")) == "discord:" then
@@ -120,5 +132,59 @@ AddEventHandler('chatMessage', function(source, name, msg)
 		if not dontSend then
 			TriggerClientEvent('chatMessage', -1, roleStr .. name .. "^7: " .. msg)
 		end
+	elseif has_value(inStaffChat, source) and not string.find(args[1], "/") then
+		-- Run client event for all and check perms
+		CancelEvent()
+		msg = "^7[^1StaffChat^7] ^5(^1" .. name .. "^5) ^9" .. msg
+		TriggerClientEvent('Permissions:CheckPermsClient', -1, msg)
+		--print("It gets here 1")
 	end
 end)
+RegisterNetEvent('Print:PrintDebug')
+AddEventHandler('Print:PrintDebug', function(msg)
+	print(msg)
+	TriggerClientEvent('chatMessage', source, "^7[^1Badger's Scripts^7] ^1DEBUG ^7" .. msg)
+end)
+inStaffChat = {}
+RegisterNetEvent("DiscordChatRoles:CheckPerms")
+AddEventHandler("DiscordChatRoles:CheckPerms", function(msg)
+	-- Check if they have permissions
+	--print("It gets to start")
+	local src = source
+	if IsPlayerAceAllowed(src, "StaffChat.Toggle") then
+		TriggerClientEvent('chatMessage', src, msg)
+		--print("It gets to end")
+	else
+		-- Doesn't have perms
+	end
+end)
+RegisterCommand("staffchat", function(source, args, rawCommand)
+	-- Check if they can run the command
+	if IsPlayerAceAllowed(source, "StaffChat.Toggle") then
+		if not has_value(inStaffChat, source) then
+			table.insert(inStaffChat, source)
+			TriggerClientEvent('chatMessage', source, "^7[^1StaffChat^7] ^5StaffChat has been toggled ^2ON")
+		else
+			table.remove(inStaffChat, get_index(inStaffChat, source))
+			TriggerClientEvent('chatMessage', source, "^7[^1StaffChat^7] ^5StaffChat has been toggled ^1OFF")
+		end
+	end
+end)
+
+RegisterCommand("sc", function(source, args, rawCommand)
+	-- Check if they can run the command
+	if IsPlayerAceAllowed(source, "StaffChat.Toggle") then
+		if not has_value(inStaffChat, source) then
+			table.insert(inStaffChat, source)
+			TriggerClientEvent('chatMessage', source, "^7[^1StaffChat^7] ^5StaffChat has been toggled ^2ON")
+		else
+			table.remove(inStaffChat, get_index(inStaffChat, source))
+			TriggerClientEvent('chatMessage', source, "^7[^1StaffChat^7] ^5StaffChat has been toggled ^1OFF")
+		end
+	end
+end)
+
+AddEventHandler("playerDropped", function()
+	table.remove(inStaffChat, get_index(inStaffChat, source))
+end)
+			
