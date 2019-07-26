@@ -161,6 +161,13 @@ end)
 RegisterCommand("staffchat", function(source, args, rawCommand)
 	-- Check if they can run the command
 	if IsPlayerAceAllowed(source, "StaffChat.Toggle") then
+		if #args == 1 then
+			if args[1] == "toggle" then
+				-- Turn off their staffchat and return
+				TriggerClientEvent('DiscordChatRoles:StaffChat:Toggle', source)
+				return
+			end
+		end
 		if not has_value(inStaffChat, source) then
 			table.insert(inStaffChat, source)
 			TriggerClientEvent('chatMessage', source, "^7[^1StaffChat^7] ^5StaffChat has been toggled ^2ON")
@@ -174,6 +181,13 @@ end)
 RegisterCommand("sc", function(source, args, rawCommand)
 	-- Check if they can run the command
 	if IsPlayerAceAllowed(source, "StaffChat.Toggle") then
+		if #args == 1 then
+			if args[1] == "toggle" then
+				-- Turn off their staffchat and return
+				TriggerClientEvent('DiscordChatRoles:StaffChat:Toggle', source)
+				return
+			end
+		end
 		if not has_value(inStaffChat, source) then
 			table.insert(inStaffChat, source)
 			TriggerClientEvent('chatMessage', source, "^7[^1StaffChat^7] ^5StaffChat has been toggled ^2ON")
