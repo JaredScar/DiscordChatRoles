@@ -63,24 +63,107 @@ function get_index (tab, val)
 end
 
 roleTracker = {}
+roleAccess = {}
 
 function setContains(set, key)
     return set[key] ~= nil
 end
+function msg(src, mesg) 
+	TriggerClientEvent('chatMessage', src, prefix .. mesg)
+end
+function msgRaw(src, mesg)
+	TriggerClientEvent('chatMessage', src, mesg)
+end
+prefix = '^9[^5DiscordChatRoles^9] ^3'
+RegisterCommand('chattag', function(source, args, rawCommand)
+	local steamID = GetPlayerIdentifiers(source)[1];
+	local accessChat = roleAccess[steamID] 
+	if accessChat == nil then 
+		-- Need them to say something in chat first 1 time 
+		msg(source, 'You need to say something in chat before you run this command...')
+		return;
+	end
+	if #args == 0 then 
+		-- Just list their chat tags
+		msg(source, "You have access to the following chat-tags:")
+		for i = 1, #accessChat do 
+			msgRaw(source, '^9[^4' .. i .. '^9] ^r' .. roleList[accessChat[i]][2])
+		end
+		msg(source, "Use /chattag <id> to change your Chat-Tag")
+	elseif #args == 1 then 
+		-- Change their chat tag 
+		if tonumber(args[1]) ~= nil then 
+			if accessChat[tonumber(args[1])] ~= nil then
+				-- Set their chatTag 
+				roleTracker[steamID] = accessChat[tonumber(args[1])]
+				msg(source, 'Your Chat-Tag has now been set to:^r ' .. roleList[accessChat[tonumber(args[1])]][2])
+			else 
+				-- Not a valid chat tag ID 
+				msg(source, '^1ERROR: This is not a valid Chat-Tag id')
+			end
+		else 
+			-- It's not a valid number 
+			msg(source, '^1ERROR: This is not a number...')
+		end
+	else 
+		-- Not correct syntax 
+		msg(source, '^1ERROR: Not proper usage. /chattag <id>')
+	end
+end)
 
 AddEventHandler('chatMessage', function(source, name, msg)
 	local args = stringsplit(msg)
 	CancelEvent()
-	if not string.find(args[1], "/") and not has_value(inStaffChat, source) then
+	local src = source 
+	if not string.find(args[1], "/") and setContains(roleTracker, GetPlayerIdentifiers(source)[1]) and not has_value(inStaffChat, GetPlayerIdentifiers(source)[1]) then 
+		local roleStr = roleList[roleTracker[GetPlayerIdentifiers(source)[1]]][2]
+		local colors = {'^0', '^2', '^3', '^4', '^5', '^6', '^7', '^8', '^9'}
+		local staffColors = {'^1', '^8'}
+		local hasColors = false
+		local hasRed = false
+		local roleNum = roleTracker[GetPlayerIdentifiers(source)[1]]
+		for i = 1, #colors do
+			local checkFor = "%" .. tostring(colors[i])
+			if string.match(msg, checkFor) ~= nil then
+				hasColors = true
+			end
+		end
+		for i = 1, #staffColors do
+			if string.find(msg, "%" .. staffColors[i]) ~= nil then
+				hasRed = true
+			end
+		end
+		local dontSend = false
+		if hasColors then
+			-- Check if they have required role
+			if not has_value(allowedColors, tonumber(roleNum)) then
+				dontSend = true
+				TriggerClientEvent('chatMessage', source, "^7[^1DiscordChatRoles^7] ^1You cannot use colored chat since you are not a donator...")
+			end
+		end
+		if hasRed then
+			-- Check if they have required role
+			if not has_value(allowedRed, tonumber(roleNum)) then
+				dontSend = true
+				TriggerClientEvent('chatMessage', source, "^7[^1DiscordChatRoles^7] ^1You cannot use the color RED in chat since you are not staff...")
+			end
+		end
+		if not dontSend then
+			TriggerClientEvent('chatMessage', -1, roleStr .. name .. "^7: " .. msg)
+		end
+	end
+	if not string.find(args[1], "/") and not has_value(inStaffChat, GetPlayerIdentifiers(source)[1]) and not setContains(roleTracker, GetPlayerIdentifiers(source)[1]) then
 		CancelEvent()
-		local src = source
+		roleTracker[GetPlayerIdentifiers(source)[1]] = 1
 		for k, v in ipairs(GetPlayerIdentifiers(src)) do
 			if string.sub(v, 1, string.len("discord:")) == "discord:" then
 				identifierDiscord = v
 			end
 		end
 		local roleStr = roleList[1][2]
-		local roleNum = 0
+		local roleNum = 1
+		local hasAccess = {}
+		table.insert(hasAccess, roleNum)
 		if identifierDiscord then
 			local roleIDs = exports.discord_perms:GetRoles(src)
 			-- Loop through roleList and set their role up:
@@ -90,15 +173,17 @@ AddEventHandler('chatMessage', function(source, name, msg)
 						local roleID = roleIDs[j]
 						if (tostring(roleList[i][1]) == tostring(roleID)) then
 							roleStr = roleList[i][2]
+							table.insert(hasAccess, i)
 							roleNum = i
 						end
 					end
 				end
+				roleAccess[GetPlayerIdentifiers(source)[1]] = hasAccess;
 			else
 				print(GetPlayerName(src) .. " has not gotten their permissions cause roleIDs == false")
 			end
 		end
-		roleTracker[GetPlayerName(src)] = roleStr
+		roleTracker[GetPlayerIdentifiers(source)[1]] = roleNum
 		local colors = {'^0', '^2', '^3', '^4', '^5', '^6', '^7', '^8', '^9'}
 		local staffColors = {'^1', '^8'}
 		local hasColors = false
@@ -132,7 +217,7 @@ AddEventHandler('chatMessage', function(source, name, msg)
 		if not dontSend then
 			TriggerClientEvent('chatMessage', -1, roleStr .. name .. "^7: " .. msg)
 		end
-	elseif has_value(inStaffChat, source) and not string.find(args[1], "/") then
+	elseif has_value(inStaffChat, GetPlayerIdentifiers(source)[1]) and not string.find(args[1], "/") then
 		-- Run client event for all and check perms
 		CancelEvent()
 		msg = "^7[^1StaffChat^7] ^5(^1" .. name .. "^5) ^9" .. msg
@@ -168,11 +253,11 @@ RegisterCommand("staffchat", function(source, args, rawCommand)
 				return
 			end
 		end
-		if not has_value(inStaffChat, source) then
-			table.insert(inStaffChat, source)
+		if not has_value(inStaffChat, GetPlayerIdentifiers(source)[1]) then
+			table.insert(inStaffChat, GetPlayerIdentifiers(source)[1])
 			TriggerClientEvent('chatMessage', source, "^7[^1StaffChat^7] ^5StaffChat has been toggled ^2ON")
 		else
-			table.remove(inStaffChat, get_index(inStaffChat, source))
+			table.remove(inStaffChat, get_index(inStaffChat, GetPlayerIdentifiers(source)[1]))
 			TriggerClientEvent('chatMessage', source, "^7[^1StaffChat^7] ^5StaffChat has been toggled ^1OFF")
 		end
 	end
@@ -188,17 +273,19 @@ RegisterCommand("sc", function(source, args, rawCommand)
 				return
 			end
 		end
-		if not has_value(inStaffChat, source) then
-			table.insert(inStaffChat, source)
+		if not has_value(inStaffChat, GetPlayerIdentifiers(source)[1]) then
+			table.insert(inStaffChat, GetPlayerIdentifiers(source)[1])
 			TriggerClientEvent('chatMessage', source, "^7[^1StaffChat^7] ^5StaffChat has been toggled ^2ON")
 		else
-			table.remove(inStaffChat, get_index(inStaffChat, source))
+			table.remove(inStaffChat, get_index(inStaffChat, GetPlayerIdentifiers(source)[1]))
 			TriggerClientEvent('chatMessage', source, "^7[^1StaffChat^7] ^5StaffChat has been toggled ^1OFF")
 		end
 	end
 end)
 
 AddEventHandler("playerDropped", function()
-	table.remove(inStaffChat, get_index(inStaffChat, source))
+	if has_value(inStaffChat, GetPlayerIdentifiers(source)[1]) then
+		table.remove(inStaffChat, get_index(inStaffChat, GetPlayerIdentifiers(source)[1]))
+	end
 end)
 			
