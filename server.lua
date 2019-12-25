@@ -8,19 +8,25 @@
 	they have that discord role.
 ]]--
 roleList = {
-{0, "^4Civilian | "}, -- 1
-{577968852852539392, "^3Trusted Civ | "}, -- 2
-{577661583497363456, "^2Donator | "}, -- 3
-{577631197987995678, "^1T-Mod | "}, -- 4
-{506211787214159872, "^1Mod | "}, -- 5
-{506212543749029900, "^1Admin | "}, -- 6
-{577966729981067305, "^6Management | "}, -- 7
-{506212786481922058, "^5Owner | "}, -- 8
+{0, "🤡 ^4Civilian | "}, -- 1
+{577968852852539392, "🌐 ^3Trusted Civ | "}, -- 2
+{577661583497363456, "💸 ^2Donator | "}, -- 3
+{600800070618841098, '💰 ^5E^2L^3I^9T^6E ^4| '}, -- Elite donator 4
+{577635624618819593, '🔥 ~r~Fire/EMS ~w~'}, -- Fire/EMS 5
+{581881252907319369, '^4👮 ^2LSPD | '}, -- LSPD 6
+{577622764618383380, '^4👮 ^3Sheriff | '}, -- Sheriff 7
+{506276895935954944, '^4👮 ^4SAHP | '}, -- Highway 8
+{609828128432586752, '🎖️ ^3National Guard | '}, -- National Guard 9 
+{577631197987995678, "⛔^1 T-Mod | "}, -- 10
+{506211787214159872, "⛔^1 Mod | "}, -- 11
+{506212543749029900, "⛔^1 Admin | "}, -- 12
+{577966729981067305, "👾^6 Management | "}, -- 13
+{506212786481922058, "👑^5 Owner | "}, -- 14
 }
 
 -- For allowing colored chat
-allowedColors = {3, 4, 5, 6, 7, 8}
-allowedRed = {4, 5, 6, 7, 8}
+allowedColors = {3, 4, 10, 11, 12, 13, 14}
+allowedRed = {10, 11, 12, 13, 14}
 
 
 --- Code ---
@@ -64,7 +70,137 @@ end
 
 roleTracker = {}
 roleAccess = {}
-
+chatcolorTracker = {}
+local availColors = 
+{
+	['DiscordChatRoles.Access.Donator'] = {
+		['White'] = {'^0'},
+		['Green'] = {'^2'},
+		['Yellow'] = {'^3'},
+		['Blue'] = {'^4'},
+		['Light Blue'] = {'^5'},
+		['Purple'] = {'^6'},
+		['White'] = {'^7'},
+		['Pink'] = {'^9'},
+		['Police'] = {'^1', '^4'},
+		['Police2'] = {'^4', '^1'},
+		['Christmas'] = {'^2', '^1'},
+		['Christmas2'] = {'^1', '^2'},
+	},
+	['DiscordChatRoles.Access.Elite'] = {
+		['RainbowYGB'] = {'^3', '^2', '^4'},
+		['RainbowFull'] = {'^3', '^4', '^1', '^5', '^6', '^7', '^9'},
+	},
+	['DiscordChatRoles.Access.Staff'] = {
+		['Red'] = {'^1'},
+	}
+}
+RegisterCommand('chatcolor', function(source, args, rawCommand)
+	local theirList = {}
+	local colorList = {}
+	for k, v in pairs(availColors) do 
+		-- k = Permission 
+		-- v = Array of color-selections
+		if IsPlayerAceAllowed(source, k) then 
+			-- They have permission to use these colors:
+			for colorName, colorArr in pairs(availColors[k]) do 
+				table.insert(theirList, colorName);
+				table.insert(colorList, colorArr);
+			end
+		end
+	end
+	if #args == 0 then 
+		-- List out which ones they have access to 
+		if #theirList > 0 then 
+			TriggerClientEvent('chatMessage', source, prefix .. 'You have access to the following Chat-Colors:');
+			for i = 1, #theirList do 
+				local arr = colorList[i];
+				local example = 'Example'
+				local ex = '';
+				local indCount = 1
+				for j = 1, #example do 
+					if indCount > #arr then 
+						indCount = 1;
+					end
+					local char = example:sub(j, j);
+					ex = ex .. arr[indCount] .. char;
+					indCount = indCount + 1;
+				end
+				TriggerClientEvent('chatMessage', source, '^9[^4' .. i .. '^9] ^0' .. theirList[i] .. " ---> " .. ex);
+			end
+		else
+			TriggerClientEvent('chatMessage', source, prefix .. '^1ERROR: You have no Chat-Colors :( - Consider donating for some :)');
+		end 
+	else
+		local selection = args[1]
+		if tonumber(selection) ~= nil then 
+			local sel = tonumber(selection);
+			if sel <= #theirList then 
+				chatcolorTracker[source] = colorList[sel];
+				TriggerClientEvent('chatMessage', source, prefix .. 'You have set your Chat-Color to ^4' .. theirList[sel]);
+			else 
+				-- Invalid selection 
+				TriggerClientEvent('chatMessage', source, '^1ERROR: That is not a valid selection...')
+			end
+		else 
+			-- Print it's not a number
+			TriggerClientEvent('chatMessage', source, '^1ERROR: You did not put in a number...') 
+		end
+	end
+end)
+RegisterCommand('cc', function(source, args, rawCommand)
+	local theirList = {}
+	local colorList = {}
+	for k, v in pairs(availColors) do 
+		-- k = Permission 
+		-- v = Array of color-selections
+		if IsPlayerAceAllowed(source, k) then 
+			-- They have permission to use these colors:
+			for colorName, colorArr in pairs(availColors[k]) do 
+				table.insert(theirList, colorName);
+				table.insert(colorList, colorArr);
+			end
+		end
+	end
+	if #args == 0 then 
+		-- List out which ones they have access to 
+		if #theirList > 0 then 
+			TriggerClientEvent('chatMessage', source, prefix .. 'You have access to the following Chat-Colors:');
+			for i = 1, #theirList do 
+				local arr = colorList[i];
+				local example = 'Example'
+				local ex = '';
+				local indCount = 1
+				for j = 1, #example do 
+					if indCount > #arr then 
+						indCount = 1;
+					end
+					local char = example:sub(j, j);
+					ex = ex .. arr[indCount] .. char;
+					indCount = indCount + 1;
+				end
+				TriggerClientEvent('chatMessage', source, '^9[^4' .. i .. '^9] ^0' .. theirList[i] .. " ---> " .. ex);
+			end
+		else
+			TriggerClientEvent('chatMessage', source, prefix .. '^1ERROR: You have no Chat-Colors :( - Consider donating for some :)');
+		end 
+	else
+		local selection = args[1]
+		if tonumber(selection) ~= nil then 
+			local sel = tonumber(selection);
+			if sel <= #theirList then 
+				chatcolorTracker[source] = colorList[sel];
+				TriggerClientEvent('chatMessage', source, prefix .. 'You have set your Chat-Color to ^4' .. theirList[sel]);
+			else 
+				-- Invalid selection 
+				TriggerClientEvent('chatMessage', source, '^1ERROR: That is not a valid selection...')
+			end
+		else 
+			-- Print it's not a number
+			TriggerClientEvent('chatMessage', source, '^1ERROR: You did not put in a number...') 
+		end
+	end
+end)
 function setContains(set, key)
     return set[key] ~= nil
 end
@@ -85,7 +221,7 @@ RegisterCommand('chattag', function(source, args, rawCommand)
 	end
 	if #args == 0 then 
 		-- Just list their chat tags
-		msg(source, "You have access to the following chat-tags:")
+		msg(source, "You have access to the following Chat-Tags:")
 		for i = 1, #accessChat do 
 			msgRaw(source, '^9[^4' .. i .. '^9] ^r' .. roleList[accessChat[i]][2])
 		end
@@ -148,8 +284,22 @@ AddEventHandler('chatMessage', function(source, name, msg)
 				TriggerClientEvent('chatMessage', source, "^7[^1DiscordChatRoles^7] ^1You cannot use the color RED in chat since you are not staff...")
 			end
 		end
+		local theirColor = chatcolorTracker[source];
+		local finalMessage = msg;
+		if theirColor ~= nil then 
+			finalMessage = ''
+			local indCount = 1;
+			for j = 1, #msg do 
+				if indCount > #theirColor then 
+					indCount = 1;
+				end
+				local char = msg:sub(j, j);
+				finalMessage = finalMessage .. theirColor[indCount] .. char;
+				indCount = indCount + 1;
+			end
+		end
 		if not dontSend then
-			TriggerClientEvent('chatMessage', -1, roleStr .. name .. "^7: " .. msg)
+			TriggerClientEvent('chatMessage', -1, roleStr .. name .. "^7: " .. finalMessage)
 		end
 	end
 	if not string.find(args[1], "/") and not has_value(inStaffChat, GetPlayerIdentifiers(source)[1]) and not setContains(roleTracker, GetPlayerIdentifiers(source)[1]) then
@@ -214,8 +364,22 @@ AddEventHandler('chatMessage', function(source, name, msg)
 				TriggerClientEvent('chatMessage', source, "^7[^1DiscordChatRoles^7] ^1You cannot use the color RED in chat since you are not staff...")
 			end
 		end
+		local theirColor = chatcolorTracker[source];
+		local finalMessage = msg;
+		if theirColor ~= nil then 
+			finalMessage = ''
+			local indCount = 1;
+			for j = 1, #msg do 
+				if indCount > #theirColor then 
+					indCount = 1;
+				end
+				local char = msg:sub(j, j);
+				finalMessage = finalMessage .. theirColor[indCount] .. char;
+				indCount = indCount + 1;
+			end
+		end
 		if not dontSend then
-			TriggerClientEvent('chatMessage', -1, roleStr .. name .. "^7: " .. msg)
+			TriggerClientEvent('chatMessage', -1, roleStr .. name .. "^7: " .. finalMessage)
 		end
 	elseif has_value(inStaffChat, GetPlayerIdentifiers(source)[1]) and not string.find(args[1], "/") then
 		-- Run client event for all and check perms
