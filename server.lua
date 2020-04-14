@@ -7,22 +7,34 @@
 	highest priority overtaking role before it if 
 	they have that discord role.
 ]]--
+-- CONFIG --
 roleList = {
-{0, "🤡 ^4Civilian | "}, -- 1
-{577968852852539392, "🌐 ^3Trusted Civ | "}, -- 2
-{577661583497363456, "💸 ^2Donator | "}, -- 3
-{600800070618841098, '💰 ^5E^2L^3I^9T^6E ^4| '}, -- Elite donator 4
-{577635624618819593, '🔥 ~r~Fire/EMS ~w~'}, -- Fire/EMS 5
-{581881252907319369, '^4👮 ^2LSPD | '}, -- LSPD 6
-{577622764618383380, '^4👮 ^3Sheriff | '}, -- Sheriff 7
-{506276895935954944, '^4👮 ^4SAHP | '}, -- Highway 8
-{609828128432586752, '🎖️ ^3National Guard | '}, -- National Guard 9 
-{577631197987995678, "⛔^1 T-Mod | "}, -- 10
-{506211787214159872, "⛔^1 Mod | "}, -- 11
-{506212543749029900, "⛔^1 Admin | "}, -- 12
-{577966729981067305, "👾^6 Management | "}, -- 13
-{506212786481922058, "👑^5 Owner | "}, -- 14
+{0, "👦🏻 ^4Civillian | "}, -- 1
+{1, "🏘️ ^3Resident | "}, -- 2
+{1, "💳 ^2Donator | "}, -- 3
+{1, '🤑 ^4ELITE | '}, -- Elite donator 4
+{1, '🧯 ^8Fire/EMS | ^0'}, -- Fire/EMS 5
+{1, '👮 ^2LSPD | '}, -- LSPD 6
+{1, '👮 ^2SASP | '}, -- 7
+{1, "✈️ ^9FAA | "}, -- 8
+{1, '🛦️ ^3National Guard | '}, -- National Guard 9
+{1, "🔻 ^1T-Mod | "}, -- 10
+{1, "🔻 ️^1Mod | "}, -- 11
+{1, "🐦 ^8Admin | "}, -- 12
+{1, "☂️ ^6Management | "}, -- 13
+{1, "🐉 ^5Owner | "}, -- 14
+{1, "🦡 ^9Systems Administrator | "},
 }
+sendBlockMessages = true;
+
+
+-- CODE --
+function sendMsg(firstline, msg, to) 
+	TriggerClientEvent('chat:addMessage', to, {
+		template = '<div style="padding: 0.5vw; margin: 0.5vw; background-color: rgba(93, 93, 93, 0.25); border-radius: 3px;">{0} <br> {1}</div>',
+        args = { firstline, msg }
+	});
+end 
 
 -- For allowing colored chat
 allowedColors = {3, 4, 10, 11, 12, 13, 14}
@@ -246,12 +258,22 @@ RegisterCommand('chattag', function(source, args, rawCommand)
 		msg(source, '^1ERROR: Not proper usage. /chattag <id>')
 	end
 end)
+chatNotEnabled = {}
+RegisterNetEvent('DiscordChatRoles:DisableChat')
+AddEventHandler('DiscordChatRoles:DisableChat', function(src)
+	chatNotEnabled[src] = true;
+end)
+RegisterNetEvent('DiscordChatRoles:EnableChat')
+AddEventHandler('DiscordChatRoles:EnableChat', function(src)
+	chatNotEnabled[src] = nil;
+end)
 
 AddEventHandler('chatMessage', function(source, name, msg)
 	local args = stringsplit(msg)
 	CancelEvent()
 	local src = source 
-	if not string.find(args[1], "/") and setContains(roleTracker, GetPlayerIdentifiers(source)[1]) and not has_value(inStaffChat, GetPlayerIdentifiers(source)[1]) then 
+	if not string.find(args[1], "/") and setContains(roleTracker, GetPlayerIdentifiers(source)[1]) and 
+		not has_value(inStaffChat, GetPlayerIdentifiers(source)[1]) and not (chatNotEnabled[src] ~= nil) then 
 		local roleStr = roleList[roleTracker[GetPlayerIdentifiers(source)[1]]][2]
 		local colors = {'^0', '^2', '^3', '^4', '^5', '^6', '^7', '^8', '^9'}
 		local staffColors = {'^1', '^8'}
@@ -299,10 +321,16 @@ AddEventHandler('chatMessage', function(source, name, msg)
 			end
 		end
 		if not dontSend then
-			TriggerClientEvent('chatMessage', -1, roleStr .. name .. "^7: " .. finalMessage)
+			--TriggerClientEvent('chatMessage', -1, roleStr .. name .. "^7: " .. finalMessage)
+			if sendBlockMessages then 
+				sendMsg(roleStr .. name .. "^7: ", finalMessage, -1); 
+			else 
+				TriggerClientEvent('chatMessage', -1, roleStr .. name .. "^7: " .. finalMessage);
+			end 
 		end
 	end
-	if not string.find(args[1], "/") and not has_value(inStaffChat, GetPlayerIdentifiers(source)[1]) and not setContains(roleTracker, GetPlayerIdentifiers(source)[1]) then
+	if not string.find(args[1], "/") and not has_value(inStaffChat, GetPlayerIdentifiers(source)[1]) and 
+		not setContains(roleTracker, GetPlayerIdentifiers(source)[1]) and not (chatNotEnabled[src] ~= nil) then
 		CancelEvent()
 		roleTracker[GetPlayerIdentifiers(source)[1]] = 1
 		for k, v in ipairs(GetPlayerIdentifiers(src)) do
@@ -379,9 +407,14 @@ AddEventHandler('chatMessage', function(source, name, msg)
 			end
 		end
 		if not dontSend then
-			TriggerClientEvent('chatMessage', -1, roleStr .. name .. "^7: " .. finalMessage)
+			--TriggerClientEvent('chatMessage', -1, roleStr .. name .. "^7: " .. finalMessage)
+			if (sendBlockMessages) then 
+				sendMsg(roleStr .. name .. "^7: ", finalMessage, -1); 
+			else
+				TriggerClientEvent('chatMessage', -1, roleStr .. name .. "^7: " .. finalMessage);
+			end 
 		end
-	elseif has_value(inStaffChat, GetPlayerIdentifiers(source)[1]) and not string.find(args[1], "/") then
+	elseif has_value(inStaffChat, GetPlayerIdentifiers(source)[1]) and not string.find(args[1], "/") and not (chatNotEnabled[src] ~= nil) then
 		-- Run client event for all and check perms
 		CancelEvent()
 		msg = "^7[^1StaffChat^7] ^5(^1" .. name .. "^5) ^9" .. msg
@@ -452,4 +485,3 @@ AddEventHandler("playerDropped", function()
 		table.remove(inStaffChat, get_index(inStaffChat, GetPlayerIdentifiers(source)[1]))
 	end
 end)
-			
