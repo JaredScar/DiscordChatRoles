@@ -3,11 +3,11 @@
 ## Continued Documentation
 https://docs.badger.store/fivem-discord-scripts/discordchatroles
 
-# Discontinued Documentation
+## Discontinued Documentation
 
-## Version 1.0
+### Version 1.0
 
-### Installation Information:
+#### Installation Information:
 https://forum.fivem.net/t/discordchatroles-release/566338
 
 This is a very simple script that uses IllusiveTea’s discord_perms for chat roles :)
