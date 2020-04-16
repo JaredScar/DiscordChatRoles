@@ -1,5 +1,10 @@
 # DiscordChatRoles
 
+## Continued Documentation
+https://docs.badger.store/fivem-discord-scripts/discordchatroles
+
+# Discontinued Documentation
+
 ## Version 1.0
 
 ### Installation Information:
