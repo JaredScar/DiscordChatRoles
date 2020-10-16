@@ -2,30 +2,12 @@
 --- Discord Chat Roles by Badger ---
 ------------------------------------
 
---[[
-	List in order of least priority to highest with 
-	highest priority overtaking role before it if 
-	they have that discord role.
-]]--
--- CONFIG --
-roleList = {
-{0, "👦🏻 ^4Civillian | "}, -- 1
-{1, "🏘️ ^3Resident | "}, -- 2
-{1, "💳 ^2Donator | "}, -- 3
-{1, '🤑 ^4ELITE | '}, -- Elite donator 4
-{1, '🧯 ^8Fire/EMS | ^0'}, -- Fire/EMS 5
-{1, '👮 ^2LSPD | '}, -- LSPD 6
-{1, '👮 ^2SASP | '}, -- 7
-{1, "✈️ ^9FAA | "}, -- 8
-{1, '🛦️ ^3National Guard | '}, -- National Guard 9
-{1, "🔻 ^1T-Mod | "}, -- 10
-{1, "🔻 ️^1Mod | "}, -- 11
-{1, "🐦 ^8Admin | "}, -- 12
-{1, "☂️ ^6Management | "}, -- 13
-{1, "🐉 ^5Owner | "}, -- 14
-{1, "🦡 ^9Systems Administrator | "},
-}
-sendBlockMessages = true;
+roleList = Config.roleList;
+allowedColors = Config.allowedColors;
+allowedRed = Config.allowedRed;
+allowedEmoji = Config.allowedEmoji;
+sendBlockMessages = Config.sendBlockMessages;
+emojis = Config.emojis;
 
 
 -- CODE --
@@ -35,10 +17,6 @@ function sendMsg(firstline, msg, to)
         args = { firstline, msg }
 	});
 end 
-
--- For allowing colored chat
-allowedColors = {3, 4, 10, 11, 12, 13, 14}
-allowedRed = {10, 11, 12, 13, 14}
 
 
 --- Code ---
@@ -83,30 +61,7 @@ end
 roleTracker = {}
 roleAccess = {}
 chatcolorTracker = {}
-local availColors = 
-{
-	['DiscordChatRoles.Access.Donator'] = {
-		['White'] = {'^0'},
-		['Green'] = {'^2'},
-		['Yellow'] = {'^3'},
-		['Blue'] = {'^4'},
-		['Light Blue'] = {'^5'},
-		['Purple'] = {'^6'},
-		['White'] = {'^7'},
-		['Pink'] = {'^9'},
-		['Police'] = {'^1', '^4'},
-		['Police2'] = {'^4', '^1'},
-		['Christmas'] = {'^2', '^1'},
-		['Christmas2'] = {'^1', '^2'},
-	},
-	['DiscordChatRoles.Access.Elite'] = {
-		['RainbowYGB'] = {'^3', '^2', '^4'},
-		['RainbowFull'] = {'^3', '^4', '^1', '^5', '^6', '^7', '^9'},
-	},
-	['DiscordChatRoles.Access.Staff'] = {
-		['Red'] = {'^1'},
-	}
-}
+availColors = Config.ColorPatterns
 RegisterCommand('chatcolor', function(source, args, rawCommand)
 	local theirList = {}
 	local colorList = {}
@@ -291,6 +246,13 @@ AddEventHandler('chatMessage', function(source, name, msg)
 				hasRed = true
 			end
 		end
+		local hasEmoji = false;
+		for label, val in pairs(emojis) do 
+			if string.find(msg, label) ~= nil then 
+				hasEmoji = true;
+				msg = msg:gsub(label, val);
+			end
+		end
 		local dontSend = false
 		if hasColors then
 			-- Check if they have required role
@@ -304,6 +266,12 @@ AddEventHandler('chatMessage', function(source, name, msg)
 			if not has_value(allowedRed, tonumber(roleNum)) then
 				dontSend = true
 				TriggerClientEvent('chatMessage', source, "^7[^1DiscordChatRoles^7] ^1You cannot use the color RED in chat since you are not staff...")
+			end
+		end
+		if hasEmoji then 
+			if not has_value(allowedEmoji, tonumber(roleNum)) then 
+				dontSend = true;
+				TriggerClientEvent('chatMessage', source, "^7[^1DiscordChatRoles^7] ^1You cannot use emojis :(")
 			end
 		end
 		local theirColor = chatcolorTracker[source];
@@ -343,13 +311,13 @@ AddEventHandler('chatMessage', function(source, name, msg)
 		local hasAccess = {}
 		table.insert(hasAccess, roleNum)
 		if identifierDiscord then
-			local roleIDs = exports.discord_perms:GetRoles(src)
+			local roleIDs = exports.Badger_Discord_API:GetDiscordRoles(src)
 			-- Loop through roleList and set their role up:
 			if not (roleIDs == false) then
 				for i = 1, #roleList do
 					for j = 1, #roleIDs do
 						local roleID = roleIDs[j]
-						if (tostring(roleList[i][1]) == tostring(roleID)) then
+						if exports.Badger_Discord_API:CheckEqual(roleList[i][1], roleID) and i ~= 1 then
 							roleStr = roleList[i][2]
 							table.insert(hasAccess, i)
 							roleNum = i
@@ -377,6 +345,13 @@ AddEventHandler('chatMessage', function(source, name, msg)
 				hasRed = true
 			end
 		end
+		local hasEmoji = false;
+		for label, val in pairs(emojis) do 
+			if string.find(msg, label) ~= nil then 
+				hasEmoji = true;
+				msg = msg:gsub(label, val);
+			end
+		end
 		local dontSend = false
 		if hasColors then
 			-- Check if they have required role
@@ -390,6 +365,12 @@ AddEventHandler('chatMessage', function(source, name, msg)
 			if not has_value(allowedRed, tonumber(roleNum)) then
 				dontSend = true
 				TriggerClientEvent('chatMessage', source, "^7[^1DiscordChatRoles^7] ^1You cannot use the color RED in chat since you are not staff...")
+			end
+		end
+		if hasEmoji then 
+			if not has_value(allowedEmoji, tonumber(roleNum)) then 
+				dontSend = true;
+				TriggerClientEvent('chatMessage', source, "^7[^1DiscordChatRoles^7] ^1You cannot use emojis :(")
 			end
 		end
 		local theirColor = chatcolorTracker[source];
