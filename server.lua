@@ -183,7 +183,7 @@ RegisterCommand('chattag', function(source, args, rawCommand)
 	local accessChat = roleAccess[steamID] 
 	if accessChat == nil then 
 		-- Need them to say something in chat first 1 time 
-		msg(source, 'You need to say something in chat before you run this command...')
+		msg(source, 'Your Discord was not detected or you have not typed in chat yet...')
 		return;
 	end
 	if #args == 0 then 
