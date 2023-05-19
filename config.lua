@@ -18,6 +18,7 @@ Config = {
 	allowedRed = {4, 5, 6, 7, 8},
 	allowedEmoji = {3, 7, 8},
 	sendBlockMessages = false,
+	playerIDs = true,
 	ColorPatterns = {
 		['DiscordChatRoles.Access.Donator'] = {
 			['White'] = {'^0'},

@@ -293,7 +293,12 @@ AddEventHandler('chatMessage', function(source, name, msg)
 			if sendBlockMessages then 
 				sendMsg(roleStr .. name .. "^7: ", finalMessage, -1); 
 			else 
-				TriggerClientEvent('chatMessage', -1, roleStr .. name .. "^7: " .. finalMessage);
+				if Config.playerIDs then
+					playerid = source
+					TriggerClientEvent('chatMessage', -1, roleStr .. name .. " [" .. playerid ..  "]^7: " .. finalMessage);
+				else
+					TriggerClientEvent('chatMessage', -1, roleStr .. name .. "^7: " .. finalMessage);
+				end
 			end 
 		end
 	end
@@ -392,7 +397,12 @@ AddEventHandler('chatMessage', function(source, name, msg)
 			if (sendBlockMessages) then 
 				sendMsg(roleStr .. name .. "^7: ", finalMessage, -1); 
 			else
-				TriggerClientEvent('chatMessage', -1, roleStr .. name .. "^7: " .. finalMessage);
+				if Config.playerIDs then
+					playerid = source
+					TriggerClientEvent('chatMessage', -1, roleStr .. name .. " [" .. playerid ..  "]^7: " .. finalMessage);
+				else
+					TriggerClientEvent('chatMessage', -1, roleStr .. name .. "^7: " .. finalMessage);
+				end
 			end 
 		end
 	elseif has_value(inStaffChat, GetPlayerIdentifiers(source)[1]) and not string.find(args[1], "/") and not (chatNotEnabled[src] ~= nil) then
